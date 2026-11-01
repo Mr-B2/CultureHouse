@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>نظام التحضير</title>
+<style>
+:root{--navy:#17324d;--blue:#2463a6;--teal:#168579;--bg:#f3f6fa;--ink:#1f2937;--muted:#64748b;--line:#dbe3ec;--red:#b42318}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Tahoma,Arial,sans-serif;line-height:1.7}
+header{background:linear-gradient(125deg,#17324d,#2463a6);color:white;padding:28px 20px}
+.head{max-width:1050px;margin:auto}
+h1{margin:0;font-size:27px}
+header p{margin:7px 0 0;color:#e2edf8}
+main{max-width:1050px;margin:24px auto;padding:0 16px 40px}
+.notice{background:#fff8e7;border:1px solid #f1d99b;border-radius:12px;padding:12px 15px;margin-bottom:18px;color:#795b16;font-size:14px}
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tab{border:1px solid var(--line);background:white;color:var(--navy);padding:11px 18px;border-radius:10px;cursor:pointer;font:inherit;font-weight:bold}
+.tab.active{background:var(--navy);color:white;border-color:var(--navy)}
+.panel,.stats,.records{background:white;border:1px solid var(--line);border-radius:16px;box-shadow:0 5px 18px #17324d0a}
+.panel{padding:22px}
+.panel h2,.records h2{margin:0 0 16px;color:var(--navy);font-size:20px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field.full{grid-column:1/-1}
+label{font-weight:bold;font-size:14px}
+input,select{width:100%;padding:12px 13px;border:1px solid #cbd5e1;border-radius:9px;font:inherit;background:white;outline:none}
+input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2463a61c}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+button{font:inherit;cursor:pointer;border:0;border-radius:9px;padding:11px 17px;font-weight:bold}
+.primary{background:var(--teal);color:white}.secondary{background:#e8eef5;color:var(--navy)}.danger{background:#fff0ef;color:var(--red)}
+.hidden{display:none!important}
+.message{margin-top:15px;padding:11px 13px;border-radius:9px;display:none}
+.message.ok{display:block;background:#e8f7ef;color:#17603a;border:1px solid #bce5ce}
+.message.err{display:block;background:#fff0ef;color:#9f241b;border:1px solid #f3c2bd}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:16px;margin:18px 0}
+.stat{padding:8px 12px;border-left:1px solid var(--line)}.stat:last-child{border:0}
+.stat span{display:block;color:var(--muted);font-size:13px}.stat strong{font-size:25px;color:var(--navy)}
+.records{margin-top:18px;padding:20px}
+.records-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.table-wrap{overflow:auto}
+table{border-collapse:collapse;width:100%;min-width:900px;font-size:13px}
+th,td{padding:11px 10px;text-align:right;border-bottom:1px solid #e8edf3;white-space:nowrap}
+th{background:#f5f8fb;color:var(--navy)}
+.empty{text-align:center;color:var(--muted);padding:24px}
+.small{font-size:12px;color:var(--muted);margin-top:10px}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:0 15px 25px}
+@media(max-width:650px){.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.stats{grid-template-columns:1fr}.stat{border-left:0;border-bottom:1px solid var(--line)}.stat:last-child{border:0}h1{font-size:23px}}
+</style>
+</head>
+<body>
+<header><div class="head"><h1>نظام التحضير</h1><p>تسجيل الدخول والخروج وإدارة سجل الحضور محليًا على هذا الجهاز</p></div></header>
+<main>
+<div class="notice"><strong>تنبيه:</strong> تُحفظ السجلات في هذا المتصفح على هذا الجهاز. صدّر نسخة CSV بانتظام وافتحها في Excel للاحتفاظ بنسخة احتياطية. مسح بيانات المتصفح قد يؤدي إلى فقد السجلات المحفوظة.</div>
+<div class="tabs" role="tablist">
+<button class="tab active" id="tabIn" type="button" onclick="showTab('in')">تسجيل الدخول</button>
+<button class="tab" id="tabOut" type="button" onclick="showTab('out')">تسجيل الخروج</button>
+</div>
+
+<section class="panel" id="loginPanel">
+<h2>تسجيل الدخول</h2>
+<form id="loginForm">
+<div class="grid">
+<div class="field"><label for="fullName">الاسم *</label><input id="fullName" required maxlength="120" autocomplete="name" placeholder="أدخل الاسم الكامل"></div>
+<div class="field"><label for="personType">النوع *</label><select id="personType" required><option value="">اختر النوع</option><option>متدرب - تمهير</option><option>متدرب - تعاوني</option><option>متطوع</option></select></div>
+<div class="field hidden" id="opportunityField"><label for="opportunity">مسمى الفرصة *</label><input id="opportunity" maxlength="150" placeholder="أدخل مسمى الفرصة"></div>
+<div class="field"><label for="phone">رقم الجوال *</label><input id="phone" required inputmode="tel" maxlength="20" placeholder="أدخل رقم الجوال"></div>
+</div>
+<div class="actions"><button class="primary" type="submit">تسجيل الدخول</button><button class="secondary" type="reset">مسح الحقول</button></div>
+<div class="message" id="loginMessage" role="status"></div>
+</form>
+</section>
+
+<section class="panel hidden" id="logoutPanel">
+<h2>تسجيل الخروج</h2>
+<form id="logoutForm">
+<div class="grid"><div class="field full"><label for="logoutPhone">رقم الجوال *</label><input id="logoutPhone" required inputmode="tel" maxlength="20" placeholder="أدخل رقم الجوال المسجل عند الدخول"></div></div>
+<div class="actions"><button class="primary" type="submit">تسجيل الخروج الآن</button><button class="secondary" type="reset">مسح الحقل</button></div>
+<div class="message" id="logoutMessage" role="status"></div>
+</form>
+<p class="small">يتم تسجيل الخروج في سجل الدخول المفتوح لرقم الجوال نفسه في تاريخ اليوم فقط.</p>
+</section>
+
+<div class="stats">
+<div class="stat"><span>إجمالي سجلات الدخول</span><strong id="totalCount">0</strong></div>
+<div class="stat"><span>مسجلون دخولهم اليوم ولم يسجلوا الخروج</span><strong id="openCount">0</strong></div>
+<div class="stat"><span>سجلات اليوم</span><strong id="todayCount">0</strong></div>
+</div>
+
+<section class="records">
+<div class="records-head"><h2>سجل التحضير</h2><div class="actions" style="margin:0"><button class="primary" type="button" onclick="exportCSV()">تصدير إلى Excel (CSV)</button><button class="secondary" type="button" onclick="document.getElementById('importFile').click()">استيراد نسخة CSV</button><input id="importFile" type="file" accept=".csv,text/csv" class="hidden"></div></div>
+<p class="small">يعرض السجل أحدث عمليات الدخول أولًا. التصدير ينشئ ملف CSV متوافقًا مع Excel.</p>
+<div class="table-wrap"><table><thead><tr><th>الاسم</th><th>النوع</th><th>مسمى الفرصة</th><th>رقم الجوال</th><th>تاريخ الدخول</th><th>وقت الدخول</th><th>وقت الخروج</th><th>إجمالي مدة الحضور</th></tr></thead><tbody id="recordsBody"></tbody></table></div>
+</section>
+</main>
+<footer>نظام محلي للاستخدام على الجهاز الحالي — لا تُرسل البيانات إلى الإنترنت.</footer>
+
+<script>
+const STORAGE_KEY = 'localAttendanceRecords_v1';
+const $ = id => document.getElementById(id);
+let records = loadRecords();
+
+function loadRecords(){
+  try { const v = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); return Array.isArray(v) ? v : []; }
+  catch(e){ return []; }
+}
+function saveRecords(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); render(); }
+function localDateTime(){
+  const d = new Date();
+  const date = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const time = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+  return {date,time};
+}
+function normalizePhone(v){ return String(v || '').replace(/[\s\-()]/g,'').trim(); }
+function durationBetween(loginTime, logoutTime){
+  if(!loginTime || !logoutTime) return '';
+  const toMinutes = t => {
+    const parts=String(t).split(':').map(Number);
+    return (parts[0]||0)*60+(parts[1]||0)+(parts[2]||0)/60;
+  };
+  const mins=Math.max(0,Math.round(toMinutes(logoutTime)-toMinutes(loginTime)));
+  return `${Math.floor(mins/60)}:${String(mins%60).padStart(2,'0')}`;
+}
+function showMessage(id, text, ok){
+  const el=$(id); el.textContent=text; el.className='message '+(ok?'ok':'err');
+}
+function clearMessage(id){const el=$(id);el.textContent='';el.className='message';}
+function showTab(tab){
+  const login=tab==='in';
+  $('loginPanel').classList.toggle('hidden',!login);
+  $('logoutPanel').classList.toggle('hidden',login);
+  $('tabIn').classList.toggle('active',login);
+  $('tabOut').classList.toggle('active',!login);
+  clearMessage('loginMessage');clearMessage('logoutMessage');
+}
+$('personType').addEventListener('change',()=>{
+  const volunteer=$('personType').value==='متطوع';
+  $('opportunityField').classList.toggle('hidden',!volunteer);
+  $('opportunity').required=volunteer;
+  if(!volunteer)$('opportunity').value='';
+});
+$('loginForm').addEventListener('reset',()=>setTimeout(()=>{ $('opportunityField').classList.toggle('hidden',$('personType').value!=='متطوع');clearMessage('loginMessage');},0));
+$('loginForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const name=$('fullName').value.trim(), type=$('personType').value;
+  const phone=normalizePhone($('phone').value), opportunity=$('opportunity').value.trim();
+  if(!name||!type||!phone){showMessage('loginMessage','يرجى تعبئة الحقول المطلوبة.',false);return;}
+  if(type==='متطوع'&&!opportunity){showMessage('loginMessage','يرجى إدخال مسمى الفرصة للمتطوع.',false);return;}
+  const now=localDateTime();
+  const already=records.some(r=>r.phone===phone&&r.date===now.date&&!r.logoutTime);
+  if(already){showMessage('loginMessage','يوجد تسجيل دخول مفتوح لهذا الرقم اليوم. سجّل الخروج أولًا.',false);return;}
+  records.push({name,type,opportunity:type==='متطوع'?opportunity:'',phone,date:now.date,loginTime:now.time,logoutTime:''});
+  saveRecords();
+  showMessage('loginMessage',`تم تسجيل دخول ${name} بنجاح في ${now.time}.`,true);
+  $('loginForm').reset();
+});
+$('logoutForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const phone=normalizePhone($('logoutPhone').value), now=localDateTime();
+  if(!phone){showMessage('logoutMessage','يرجى إدخال رقم الجوال.',false);return;}
+  const record=[...records].reverse().find(r=>r.phone===phone&&r.date===now.date&&!r.logoutTime);
+  if(!record){showMessage('logoutMessage','لم يتم العثور على تسجيل دخول مفتوح لهذا الرقم في تاريخ اليوم.',false);return;}
+  record.logoutTime=now.time;
+  record.duration=durationBetween(record.loginTime, record.logoutTime);
+  saveRecords();
+  showMessage('logoutMessage',`تم تسجيل الخروج بنجاح في ${now.time}.`,true);
+  $('logoutForm').reset();
+});
+function escapeHTML(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function render(){
+  const sorted=[...records].reverse();
+  $('recordsBody').innerHTML=sorted.length?sorted.map(r=>`<tr><td>${escapeHTML(r.name)}</td><td>${escapeHTML(r.type)}</td><td>${escapeHTML(r.opportunity||'—')}</td><td>${escapeHTML(r.phone)}</td><td>${escapeHTML(r.date)}</td><td>${escapeHTML(r.loginTime)}</td><td>${escapeHTML(r.logoutTime||'لم يسجل')}</td><td>${escapeHTML(r.duration || (r.logoutTime ? durationBetween(r.loginTime,r.logoutTime) : '—'))}</td></tr>`).join(''):'<tr><td colspan="8" class="empty">لا توجد سجلات حتى الآن.</td></tr>';
+  const today=localDateTime().date;
+  $('totalCount').textContent=records.length;
+  $('todayCount').textContent=records.filter(r=>r.date===today).length;
+  $('openCount').textContent=records.filter(r=>r.date===today&&!r.logoutTime).length;
+}
+function exportCSV(){
+  const headers=['الاسم','النوع','مسمى الفرصة','رقم الجوال','تاريخ الدخول','وقت الدخول','وقت الخروج','إجمالي مدة الحضور'];
+  const rows=records.map(r=>[r.name,r.type,r.opportunity,r.phone,r.date,r.loginTime,r.logoutTime,r.duration || (r.logoutTime ? durationBetween(r.loginTime,r.logoutTime) : '')]);
+  const csv='\uFEFF'+[headers,...rows].map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  a.href=url;a.download=`سجل_التحضير_${localDateTime().date}.csv`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+}
+$('importFile').addEventListener('change',async e=>{
+  const file=e.target.files[0];if(!file)return;
+  try{
+    const text= (await file.text()).replace(/^\uFEFF/,'');
+    const lines=parseCSV(text);
+    if(lines.length<1)throw new Error('الملف فارغ');
+    const head=lines[0].map(v=>v.trim());
+    const find=(...names)=>head.findIndex(h=>names.includes(h));
+    const ix={name:find('الاسم','name'),type:find('النوع','type'),opportunity:find('مسمى الفرصة','opportunity'),phone:find('رقم الجوال','phone'),date:find('تاريخ الدخول','date'),loginTime:find('وقت الدخول','loginTime'),logoutTime:find('وقت الخروج','logoutTime')};
+    if(['name','type','phone','date','loginTime','logoutTime'].some(k=>ix[k]<0))throw new Error('تعذر التعرف على أعمدة الملف. استخدم ملف CSV صادرًا من هذا البرنامج.');
+    const imported=lines.slice(1).filter(row=>row.some(v=>v.trim())).map(row=>({name:row[ix.name]||'',type:row[ix.type]||'',opportunity:ix.opportunity>=0?row[ix.opportunity]||'':'',phone:normalizePhone(row[ix.phone]),date:row[ix.date]||'',loginTime:row[ix.loginTime]||'',logoutTime:row[ix.logoutTime]||''}));
+    if(!confirm(`سيتم استيراد ${imported.length} سجل وإضافتها إلى السجلات الحالية. هل تريد المتابعة؟`))return;
+    records=records.concat(imported);saveRecords();alert('تم استيراد السجلات بنجاح.');
+  }catch(err){alert('تعذر استيراد الملف: '+err.message);}
+  finally{e.target.value='';}
+});
+function parseCSV(text){
+  const rows=[];let row=[],cell='',quoted=false;
+  for(let i=0;i<text.length;i++){const c=text[i];
+    if(quoted){if(c==='"'&&text[i+1]==='"'){cell+='"';i++;}else if(c==='"')quoted=false;else cell+=c;}
+    else if(c==='"')quoted=true;
+    else if(c===','){row.push(cell);cell='';}
+    else if(c==='\n'){row.push(cell.replace(/\r$/,''));rows.push(row);row=[];cell='';}
+    else cell+=c;
+  }
+  if(cell.length||row.length){row.push(cell.replace(/\r$/,''));rows.push(row);}
+  return rows;
+}
+render();
+</script>
+</body>
+</html>
